@@ -79,7 +79,7 @@ const AdminTemplates: React.FC = () => {
                   />
                   <div>
                     <h3 className="text-lg font-semibold">{template.title}</h3>
-                    <p className="text-gray-600">{template.category} • ${template.price}</p>
+                    <p className="text-gray-600">{template.category} • ₹{template.price}</p>
                     <p className="text-sm text-gray-500">{template.downloads} downloads</p>
                   </div>
                 </div>

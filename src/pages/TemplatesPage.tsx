@@ -100,7 +100,7 @@ const TemplatesPage: React.FC = () => {
                     </Button>
                   </div>
                   <div className="absolute top-2 right-2 bg-blue-600 rounded-full px-3 py-1 text-xs font-bold text-white shadow-lg">
-                    {template.price === 0 ? 'FREE' : `$${template.price}`}
+                    {template.price === 0 ? 'FREE' : `₹${template.price}`}
                   </div>
                 </div>
                 
