@@ -32,11 +32,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
   const [selectedPlan, setSelectedPlan] = useState(plans[1]); // Default to Pro Pack
   const [checkoutStage, setCheckoutStage] = useState<'packages' | 'simulator' | 'otp' | 'netbanking_portal' | 'processing' | 'success'>('packages');
+  const [paymentMode, setPaymentMode] = useState<'live' | 'simulator'>('live');
   const [activeMethod, setActiveMethod] = useState<PaymentMethodType>('upi');
   
   // UPI Form States
   const [upiOption, setUpiOption] = useState<'qr' | 'id'>('qr');
   const [upiId, setUpiId] = useState('');
+  const [selectedUpiApp, setSelectedUpiApp] = useState('gpay');
   
   // Card Form States
   const [cardNumber, setCardNumber] = useState('');
@@ -249,7 +251,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm animate-fadeIn">
       <div className="relative w-full max-w-4xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col md:flex-row max-h-[92vh] transition-all duration-300">
         
         {/* Close Button */}
@@ -262,7 +264,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
         {/* --- STAGE: SUCCESS --- */}
         {checkoutStage === 'success' ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-900 dark:to-emerald-950/20">
+          <div className="flex-grow flex flex-col items-center justify-center p-12 text-center bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-900 dark:to-emerald-950/20">
             <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-6 animate-bounce shadow-md">
               <CheckCircle2 className="h-12 w-12 text-emerald-500 animate-pulse" />
             </div>
@@ -341,12 +343,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                     Payments are securely structured via Cashfree Payments.
                   </p>
                 </div>
-                {liveError && (
-                  <div className="p-2 bg-amber-50 dark:bg-amber-950/20 text-[9px] text-amber-700 dark:text-amber-300 rounded-lg flex items-start gap-1">
-                    <Info className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                    <span>Live check failed (API key/domain mismatch). Using high-fidelity Cashfree checkout simulator.</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -355,7 +351,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
               
               {/* --- STAGE: PACKAGES (Welcome/Trigger Live Flow) --- */}
               {checkoutStage === 'packages' && (
-                <div className="flex-1 flex flex-col justify-center py-6">
+                <div className="flex-1 flex flex-col justify-center py-4">
                   <div className="text-center mb-6">
                     <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-800/30 shadow-sm">
                       <CreditCard className="h-8 w-8 text-blue-600 dark:text-blue-400" />
@@ -366,7 +362,31 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                     </p>
                   </div>
 
-                  {liveError && (
+                  {/* Mode switcher tabs */}
+                  <div className="flex bg-gray-100 dark:bg-gray-950 p-1.5 rounded-2xl max-w-md mx-auto w-full mb-6">
+                    <button
+                      onClick={() => setPaymentMode('live')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-black rounded-xl transition-all ${
+                        paymentMode === 'live'
+                          ? 'bg-white dark:bg-gray-850 text-blue-600 dark:text-blue-400 shadow-md border border-gray-200/50 dark:border-gray-850'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      }`}
+                    >
+                      <Lock className="h-3.5 w-3.5" /> Official Live Gateway
+                    </button>
+                    <button
+                      onClick={() => setPaymentMode('simulator')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-black rounded-xl transition-all ${
+                        paymentMode === 'simulator'
+                          ? 'bg-white dark:bg-gray-850 text-amber-600 dark:text-amber-400 shadow-md border border-gray-200/50 dark:border-gray-850'
+                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      }`}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" /> Indian Simulator (Free)
+                    </button>
+                  </div>
+
+                  {liveError && paymentMode === 'live' && (
                     <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300 border border-rose-100 dark:border-rose-900/30 rounded-2xl text-xs text-left max-w-md mx-auto space-y-2">
                       <div className="flex items-center gap-2 font-bold text-sm">
                         <AlertCircle className="h-4.5 w-4.5 text-rose-500" />
@@ -378,32 +398,38 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                       <div className="text-[10px] space-y-1 text-gray-500 dark:text-gray-400 pt-2 border-t border-rose-200/50 dark:border-rose-900/35">
                         <p className="font-bold text-rose-600 dark:text-rose-400">Troubleshooting Checklist:</p>
                         <ul className="list-disc pl-4 space-y-1">
-                          <li><strong>Restart Vite Dev Server:</strong> If you recently modified the <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">.env</code> file, you <strong>must stop the server and run <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">npm run dev</code> again</strong> in the terminal to load the new credentials.</li>
-                          <li><strong>Check Sandbox/Production:</strong> The credentials provided are <strong>production credentials</strong>. Ensure you are not running behind an offline mock environment.</li>
+                          <li><strong>Verify Credentials:</strong> Ensure `CASHFREE_APP_ID` & `CASHFREE_SECRET_KEY` are correct in Cloudflare Environment Settings.</li>
+                          <li><strong>Verify return_url:</strong> Cashfree production demands the HTTPS domain (check VITE_APP_URL is active).</li>
                         </ul>
                       </div>
                     </div>
                   )}
 
                   <div className="space-y-4 max-w-md mx-auto w-full">
-                    <button
-                      onClick={handleLivePayment}
-                      disabled={isProcessing}
-                      className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg hover:shadow-blue-500/20 transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50"
-                    >
-                      {isProcessing ? (
-                        <><Loader2 className="h-5 w-5 animate-spin" /> Fetching Gateway...</>
-                      ) : (
-                        <>Pay ₹{selectedPlan.price} Securely</>
-                      )}
-                    </button>
+                    {paymentMode === 'live' ? (
+                      <button
+                        onClick={handleLivePayment}
+                        disabled={isProcessing}
+                        className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg hover:shadow-blue-500/20 transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50"
+                      >
+                        {isProcessing ? (
+                          <><Loader2 className="h-5 w-5 animate-spin" /> Launching Live Cashfree Gateway...</>
+                        ) : (
+                          <>Pay ₹{selectedPlan.price} Securely</>
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setCheckoutStage('simulator')}
+                        className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg hover:shadow-orange-500/20 transition-all duration-300 transform active:scale-[0.98]"
+                      >
+                        <Sparkles className="h-5 w-5 animate-pulse" /> Launch Indian Payment Simulator
+                      </button>
+                    )}
                     
-                    <button
-                      onClick={() => setCheckoutStage('simulator')}
-                      className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3.5 px-6 rounded-2xl transition-all duration-300 text-xs"
-                    >
-                      Open Indian Payment Simulator (UPI/Netbanking/Cards)
-                    </button>
+                    <p className="text-[10px] text-gray-400 text-center font-semibold">
+                      🔒 Transactions are securely structures with AES 256-bit encryption.
+                    </p>
                   </div>
                 </div>
               )}
@@ -422,7 +448,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Secured for SKILLSTASH</p>
+                      <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">SIMULATION PORTAL</p>
                       <p className="text-white text-sm font-black tracking-tight">₹{selectedPlan.price}.00</p>
                     </div>
                   </div>
@@ -519,35 +545,50 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                           </div>
 
                           {upiOption === 'qr' ? (
-                            <div className="flex flex-col items-center py-4 bg-gray-50 dark:bg-gray-900/30 rounded-2xl border border-gray-200/50 dark:border-gray-700">
-                              {/* QR Scan box with animated scanning line */}
-                              <div className="relative p-3 bg-white dark:bg-gray-800 border border-gray-150 dark:border-gray-700 rounded-xl shadow-md">
-                                <div className="absolute inset-0 bg-transparent flex flex-col justify-between p-3 pointer-events-none z-10">
-                                  {/* Corner marks */}
+                            <div className="flex flex-col items-center py-3 bg-gray-50/50 dark:bg-gray-900/20 rounded-2xl border border-gray-200/50 dark:border-gray-700">
+                              
+                              {/* Popular Indian UPI logos */}
+                              <div className="flex gap-4 items-center justify-center mb-3">
+                                <button type="button" onClick={() => setSelectedUpiApp('gpay')} className={`px-2 py-1 rounded-lg border transition-all ${selectedUpiApp === 'gpay' ? 'bg-white dark:bg-gray-800 border-blue-500 shadow-sm' : 'bg-transparent border-gray-200/40'}`}>
+                                  <span className="font-extrabold text-[9px] tracking-tight text-blue-500">Google Pay</span>
+                                </button>
+                                <button type="button" onClick={() => setSelectedUpiApp('phonepe')} className={`px-2 py-1 rounded-lg border transition-all ${selectedUpiApp === 'phonepe' ? 'bg-white dark:bg-gray-800 border-purple-500 shadow-sm' : 'bg-transparent border-gray-200/40'}`}>
+                                  <span className="font-extrabold text-[9px] tracking-tight text-purple-500">PhonePe</span>
+                                </button>
+                                <button type="button" onClick={() => setSelectedUpiApp('paytm')} className={`px-2 py-1 rounded-lg border transition-all ${selectedUpiApp === 'paytm' ? 'bg-white dark:bg-gray-800 border-sky-500 shadow-sm' : 'bg-transparent border-gray-200/40'}`}>
+                                  <span className="font-extrabold text-[9px] tracking-tight text-sky-500">Paytm</span>
+                                </button>
+                                <button type="button" onClick={() => setSelectedUpiApp('bhim')} className={`px-2 py-1 rounded-lg border transition-all ${selectedUpiApp === 'bhim' ? 'bg-white dark:bg-gray-800 border-orange-500 shadow-sm' : 'bg-transparent border-gray-200/40'}`}>
+                                  <span className="font-extrabold text-[9px] tracking-tight text-orange-500">BHIM</span>
+                                </button>
+                              </div>
+
+                              <div className="relative p-2.5 bg-white dark:bg-gray-850 border border-gray-150 dark:border-gray-700 rounded-xl shadow-md">
+                                <div className="absolute inset-0 bg-transparent flex flex-col justify-between p-2.5 pointer-events-none z-10">
                                   <div className="flex justify-between">
-                                    <div className="w-3.5 h-3.5 border-t-2 border-l-2 border-blue-600"></div>
-                                    <div className="w-3.5 h-3.5 border-t-2 border-r-2 border-blue-600"></div>
+                                    <div className="w-3 h-3 border-t-2 border-l-2 border-blue-600"></div>
+                                    <div className="w-3 h-3 border-t-2 border-r-2 border-blue-600"></div>
                                   </div>
                                   <div className="flex justify-between">
-                                    <div className="w-3.5 h-3.5 border-b-2 border-l-2 border-blue-600"></div>
-                                    <div className="w-3.5 h-3.5 border-b-2 border-r-2 border-blue-600"></div>
+                                    <div className="w-3 h-3 border-b-2 border-l-2 border-blue-600"></div>
+                                    <div className="w-3 h-3 border-b-2 border-r-2 border-blue-600"></div>
                                   </div>
                                 </div>
                                 
                                 {/* Simulated QR Image */}
-                                <div className="relative w-36 h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
-                                  <QrCode className="h-32 w-32 text-slate-800 dark:text-gray-200" />
+                                <div className="relative w-32 h-32 bg-gray-50 flex items-center justify-center overflow-hidden">
+                                  <QrCode className="h-28 w-28 text-slate-800 dark:text-gray-200" />
                                   <div className="absolute w-full h-0.5 bg-blue-500 top-0 left-0 shadow-lg shadow-blue-500 animate-scanline"></div>
                                 </div>
                               </div>
-                              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-3 uppercase tracking-wider text-center">
-                                Scan QR using BHIM, GPay, PhonePe or Paytm
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mt-2 uppercase tracking-wider text-center">
+                                Scan with any UPI App to approve ₹{selectedPlan.price}
                               </p>
                               
                               <button
                                 type="button"
                                 onClick={handlePaymentSuccess}
-                                className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[11px] rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/20"
+                                className="mt-3.5 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[11px] rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/20"
                               >
                                 <Check className="h-3.5 w-3.5" /> Simulate QR Payment Success
                               </button>
@@ -719,9 +760,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                             )}
                           </button>
                         )}
-                        <p className="text-[9px] text-gray-400 font-bold text-center mt-2 flex items-center justify-center gap-1">
-                          <Lock className="h-3 w-3" /> SECURED BY 256-BIT SSL ENCRYPTION
-                        </p>
+                        
+                        {/* Option to return back to Packages */}
+                        <button
+                          type="button"
+                          onClick={() => setCheckoutStage('packages')}
+                          className="w-full text-center mt-3 text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                        >
+                          ← Back to gateway options
+                        </button>
                       </div>
                     </form>
                   </div>
@@ -730,7 +777,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
               {/* --- STAGE: OTP DIALOG (FOR CARD SIMULATOR) --- */}
               {checkoutStage === 'otp' && (
-                <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
+                <div className="flex-grow flex flex-col justify-center max-w-md mx-auto w-full">
                   <div className="bg-slate-50 dark:bg-gray-900 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-lg text-center space-y-4">
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto shadow-sm">
                       <Lock className="h-6 w-6" />
@@ -741,7 +788,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                     </div>
                     
                     <div className="p-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-150 dark:border-gray-700 text-left text-xs space-y-1.5 shadow-sm">
-                      <div className="flex justify-between"><span className="text-gray-400 font-bold">Merchant:</span><span className="font-extrabold text-gray-900 dark:text-white">SKILLSTASH</span></div>
+                      <div className="flex justify-between"><span className="text-gray-400 font-bold">Merchant:</span><span className="font-extrabold text-gray-950 dark:text-white">SKILLSTASH</span></div>
                       <div className="flex justify-between"><span className="text-gray-400 font-bold">Amount:</span><span className="font-black text-blue-600 dark:text-blue-400">₹{selectedPlan.price}.00</span></div>
                       <div className="flex justify-between"><span className="text-gray-400 font-bold">Card:</span><span className="font-bold text-gray-800 dark:text-gray-200">**** **** **** {cardNumber.slice(-4) || '4242'}</span></div>
                     </div>
@@ -786,7 +833,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
               {/* --- STAGE: MOCK NETBANKING PORTAL REDIRECT --- */}
               {checkoutStage === 'netbanking_portal' && (
-                <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
+                <div className="flex-grow flex flex-col justify-center max-w-md mx-auto w-full">
                   <div className="bg-slate-50 dark:bg-gray-900 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-xl space-y-5 text-center">
                     <div className="w-14 h-14 bg-gradient-to-tr from-blue-700 to-indigo-800 text-white rounded-2xl flex items-center justify-center mx-auto shadow-md text-lg font-black tracking-widest">
                       {selectedBank}
@@ -799,7 +846,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
                     </div>
 
                     <div className="p-4 bg-white dark:bg-gray-850 rounded-2xl border border-gray-150 dark:border-gray-700 text-left text-xs space-y-2 shadow-sm">
-                      <div className="flex justify-between"><span className="text-gray-400 font-bold">Merchant:</span><span className="font-extrabold text-gray-850 dark:text-white">SKILLSTASH</span></div>
+                      <div className="flex justify-between"><span className="text-gray-400 font-bold">Merchant:</span><span className="font-extrabold text-gray-950 dark:text-white">SKILLSTASH</span></div>
                       <div className="flex justify-between"><span className="text-gray-400 font-bold">Total Payment:</span><span className="font-black text-blue-600 dark:text-blue-400">₹{selectedPlan.price}.00</span></div>
                     </div>
 

@@ -25,6 +25,7 @@ import DashboardLayout from './pages/dashboard/DashboardLayout';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import UserCoursesPage from './pages/dashboard/CoursesPage';
 import UserTemplatesPage from './pages/dashboard/TemplatesPage';
+import BillingPage from './pages/dashboard/BillingPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import { useAuthStore } from './stores/authStore';
@@ -137,10 +138,7 @@ function App() {
             <Route path="/dashboard/billing" element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <div className="text-center py-12">
-                    <h1 className="text-2xl font-bold mb-4 text-gray-100">Billing</h1>
-                    <p className="text-gray-400">Your billing information will appear here.</p>
-                  </div>
+                  <BillingPage />
                 </DashboardLayout>
               </ProtectedRoute>
             } />

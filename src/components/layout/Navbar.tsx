@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown, Share2, LogOut, User, Search, Moon, Sun, LayoutDashboard, Sparkles } from 'lucide-react';
+import { Menu, X, ChevronDown, Share2, LogOut, User, Search, Moon, Sun, LayoutDashboard, Sparkles, Coins } from 'lucide-react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AuthModal } from '../auth/AuthModal';
 import { SearchModal } from '../shared/SearchModal';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
+import { useUserStore } from '../../stores/userStore';
+import { CheckoutModal } from '../payment/CheckoutModal';
 import { supabase } from '../../lib/supabase';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
   const { user, setUser, signOut } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const { credits } = useUserStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -171,30 +175,49 @@ const Navbar: React.FC = () => {
             </button>
             
             {user ? (
-              <div className="relative">
-                <button 
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className={`flex items-center space-x-2 transition-colors duration-300 ${
-                    scrolled 
-                      ? 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' 
-                      : (isDark ? 'text-white hover:text-blue-200' : 'text-gray-700 hover:text-blue-600')
-                  }`}
+              <div className="flex items-center gap-3">
+                {/* Credit balance display */}
+                <button
+                  onClick={() => setIsCheckoutOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/25 text-amber-600 dark:text-amber-400 text-xs font-black shadow-sm transition-all"
+                  title="Your AI Tailoring Credits"
                 >
-                  <User className="h-5 w-5" />
-                  <span>{userProfile?.full_name || user.email}</span>
-                  <ChevronDown className="h-4 w-4" />
+                  <Coins className="h-3.5 w-3.5 animate-pulse text-amber-500" />
+                  <span>{credits} Credits</span>
                 </button>
-                
-                {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-200 dark:border-gray-700">
-                    <RouterLink
-                      to="/dashboard"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Dashboard
-                    </RouterLink>
+
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className={`flex items-center space-x-2 transition-colors duration-300 ${
+                      scrolled 
+                        ? 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white' 
+                        : (isDark ? 'text-white hover:text-blue-200' : 'text-gray-700 hover:text-blue-600')
+                    }`}
+                  >
+                    <User className="h-5 w-5" />
+                    <span>{userProfile?.full_name || user.email}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                  
+                  {isMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-200 dark:border-gray-700">
+                      <RouterLink
+                        to="/dashboard"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </RouterLink>
+                      <RouterLink
+                        to="/dashboard/billing"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Coins className="h-4 w-4 mr-2 text-amber-500" />
+                        Billing & Credits
+                      </RouterLink>
                     {user.email === 'skillstash.official@gmail.com' && (
                       <RouterLink
                         to="/admin"
@@ -215,6 +238,7 @@ const Navbar: React.FC = () => {
                   </div>
                 )}
               </div>
+            </div>
             ) : (
               <RouterLink 
                 to="/login"
@@ -333,6 +357,10 @@ const Navbar: React.FC = () => {
       <SearchModal 
         isOpen={isSearchModalOpen} 
         onClose={() => setIsSearchModalOpen(false)} 
+      />
+      <CheckoutModal 
+        isOpen={isCheckoutOpen} 
+        onClose={() => setIsCheckoutOpen(false)} 
       />
     </nav>
   );
