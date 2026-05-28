@@ -153,10 +153,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       addCredits(selectedPlan.credits);
       
     } catch (err: any) {
-      console.warn('Live integration unavailable or CORS/Whitelisting blocked call. Booting high-fidelity Cashfree checkout simulator.', err);
-      setLiveError(err.message || 'Payment server unavailable.');
-      // Auto-fallback to simulator stage
-      setCheckoutStage('simulator');
+      console.warn('Live integration failed:', err);
+      setLiveError(err.message || 'Payment server connection failed.');
     } finally {
       setIsProcessing(false);
     }
@@ -354,15 +352,34 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
               {/* --- STAGE: PACKAGES (Welcome/Trigger Live Flow) --- */}
               {checkoutStage === 'packages' && (
                 <div className="flex-1 flex flex-col justify-center py-6">
-                  <div className="text-center mb-8">
+                  <div className="text-center mb-6">
                     <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-800/30 shadow-sm">
-                      <CreditCard className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-pulse" />
+                      <CreditCard className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                     </div>
                     <h4 className="text-xl font-extrabold text-gray-900 dark:text-white mb-2">Secure Checkout Portal</h4>
                     <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
                       Complete your transaction using India's leading payment gateway provider. Access instant UPI, card networks, and netbanking.
                     </p>
                   </div>
+
+                  {liveError && (
+                    <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300 border border-rose-100 dark:border-rose-900/30 rounded-2xl text-xs text-left max-w-md mx-auto space-y-2">
+                      <div className="flex items-center gap-2 font-bold text-sm">
+                        <AlertCircle className="h-4.5 w-4.5 text-rose-500" />
+                        <span>Cashfree Gateway Call Failed</span>
+                      </div>
+                      <p className="font-semibold text-rose-900 dark:text-rose-200">
+                        Error Detail: <code className="bg-rose-100 dark:bg-rose-900/40 px-1 py-0.5 rounded font-mono text-[10px] break-all">{liveError}</code>
+                      </p>
+                      <div className="text-[10px] space-y-1 text-gray-500 dark:text-gray-400 pt-2 border-t border-rose-200/50 dark:border-rose-900/35">
+                        <p className="font-bold text-rose-600 dark:text-rose-400">Troubleshooting Checklist:</p>
+                        <ul className="list-disc pl-4 space-y-1">
+                          <li><strong>Restart Vite Dev Server:</strong> If you recently modified the <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">.env</code> file, you <strong>must stop the server and run <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">npm run dev</code> again</strong> in the terminal to load the new credentials.</li>
+                          <li><strong>Check Sandbox/Production:</strong> The credentials provided are <strong>production credentials</strong>. Ensure you are not running behind an offline mock environment.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-4 max-w-md mx-auto w-full">
                     <button
