@@ -7,6 +7,17 @@ function cashfreeApiPlugin() {
     name: 'cashfree-api-middleware',
     configureServer(server: any) {
       server.middlewares.use('/api/cashfree', async (req: any, res: any, next: any) => {
+        // Handle CORS preflight requests
+        if (req.method === 'OPTIONS') {
+          res.writeHead(200, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, x-client-id, x-client-secret, x-api-version',
+          });
+          res.end();
+          return;
+        }
+
         // Only handle POST requests
         if (req.method !== 'POST') {
           return next();
@@ -34,7 +45,7 @@ function cashfreeApiPlugin() {
               'Accept': 'application/json',
               'x-client-id': appId,
               'x-client-secret': secretKey,
-              'x-api-version': '2025-01-01',
+              'x-api-version': '2023-08-01',
             },
             body: body,
           });

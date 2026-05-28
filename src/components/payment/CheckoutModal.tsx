@@ -122,7 +122,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
             customer_email: customerEmail
           },
           order_meta: {
-            return_url: window.location.origin + `/ats-checker?order_id=${orderId}`
+            // Cashfree production requires HTTPS. Use VITE_APP_URL when on localhost.
+            return_url: (
+              import.meta.env.VITE_APP_URL ||
+              (window.location.protocol === 'https:' ? window.location.origin : '')
+            ) + `/ats-checker?order_id=${orderId}`
           }
         })
       });
